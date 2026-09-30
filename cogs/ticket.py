@@ -139,7 +139,6 @@ class Ticket(commands.Cog):
         yetkili_rol="Ticketları görecek yetkili rol",
         log_kanal="Kapanan ticketların kaydı (isteğe bağlı)",
     )
-    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def kur(
         self,

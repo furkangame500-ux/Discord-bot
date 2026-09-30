@@ -49,14 +49,15 @@ HELP = {
         "`/temizle` `/kilitle` `/kilit-ac` `/yavasmod`\n"
         "`B!rolver` `B!rolal` `B!nick` `B!banliste`"),
     "🤖 Otomatik Sistemler": (
-        "`/automod ayarla` `/automod durum` • küfür (AI), spam, davet ve toplu etiket engeli\n"
+        "`/automod ayarla` `/automod durum` • küfür (AI), spam ve toplu etiket engeli\n"
+        "`/linkkoruma durum` `ayarla` `kanal` `rol` `sunucu` • başka sunucu daveti engeli\n"
         "`/otocevap ekle` `/otocevap sil` `/otocevap liste`\n"
         "`/log kur` `/log kapat` • `sa` yazana **Aleyküm Selam**"),
     "🎫 Topluluk": (
         "`/ticket kur` `/ticket ekle` `/ticket cikar` `/ticket kapat`\n"
         "`/abone kur` `/abone onayla` • `/rolpanel`\n"
         "`B!oneri` `B!onerikanal` • `/gelengiden kur/kapat/test/otorol`\n"
-        "`/anket` `/cekilis` `/duyuru`"),
+        "`/anket` `/cekilis` `/duyuru` `/menu oluştur`"),
     "🎵 Müzik": (
         "`/müzik çal` (YouTube, Spotify, SoundCloud link veya şarkı adı)\n"
         "`/müzik duraklat` `devam` `atla` `dur` `kuyruk` `şimdi` `ses` `döngü` `karıştır` `sil` `temizle`"),

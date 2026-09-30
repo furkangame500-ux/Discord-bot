@@ -76,12 +76,15 @@ class Utility(commands.Cog):
         dur = parse_duration(sure)
         if not dur:
             return await interaction.response.send_message("❌ Geçersiz süre. Örnek: `10dk`, `2sa`, `1g`", ephemeral=True)
+        if dur.total_seconds() > 7 * 86400:
+            return await interaction.response.send_message("❌ Çekiliş en fazla 7 gün sürebilir.", ephemeral=True)
         end = discord.utils.utcnow() + dur
         view = GiveawayView()
         e = discord.Embed(title=f"🎁 {odul}", color=config.COLOR_JOIN,
                           description=f"Katılmak için butona bas!\nBitiş: {discord.utils.format_dt(end, 'R')}\nKazanan: **{kazanan}**")
         await interaction.response.send_message(embed=e, view=view)
-        msg = await interaction.original_response()
+        original = await interaction.original_response()
+        msg = interaction.channel.get_partial_message(original.id)  # token süresi dolsa da düzenlenebilir
         await asyncio.sleep(dur.total_seconds())
         entries = list(view.entries)
         winners = random.sample(entries, min(kazanan, len(entries))) if entries else []

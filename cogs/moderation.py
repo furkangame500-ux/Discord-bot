@@ -55,7 +55,7 @@ class Moderation(commands.Cog):
         if err := self._check(interaction, uye):
             return await interaction.response.send_message(f"❌ {err}", ephemeral=True)
         await self._dm(uye, interaction.guild, f"banlandın. Sebep: {sebep}")
-        await uye.ban(reason=f"{interaction.user}: {sebep}", delete_message_days=mesaj_sil_gun)
+        await uye.ban(reason=f"{interaction.user}: {sebep}", delete_message_seconds=mesaj_sil_gun * 86400)
         e = self._embed("🔨 Üye Banlandı", config.COLOR_LEAVE, uye, interaction.user, sebep)
         await interaction.response.send_message(embed=e)
         await self.bot.send_log(interaction.guild, e)

@@ -17,11 +17,10 @@ from utils import apply_warn_penalty, format_duration
 log = logging.getLogger("mercia.automod")
 
 SA_RE = re.compile(r"^\s*(sa|s\.a\.?|selam[uü]n\s*aleyk[uü]m)(?!\w)", re.IGNORECASE)
-INVITE_RE = re.compile(r"(?:discord\.gg|discord(?:app)?\.com/invite)/[\w-]+", re.IGNORECASE)
 URL_RE = re.compile(r"https?://\S+")
 
 LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s",
-                      "ı": "i", "ö": "o", "ü": "u", "ş": "s", "ç": "c", "ğ": "g", "İ": "i"})
+                     "ı": "i", "ö": "o", "ü": "u", "ş": "s", "ç": "c", "ğ": "g", "İ": "i"})
 
 # Hızlı yerel filtre (AI'ya gitmeden yakalar). İstediğini ekleyip çıkarabilirsin.
 BAD_WORDS = {"amk", "aq", "mk", "siktir", "sikerim", "sikeyim", "orospu", "orospucocugu", "pic",
@@ -70,11 +69,14 @@ class AutoMod(commands.Cog):
             return False
         async with self.sem:
             try:
-                resp = await self.bot.ai.messages.create(
-                    model=config.AI_MODEL, max_tokens=5, system=AI_SYSTEM,
-                    messages=[{"role": "user", "content": f"<mesaj>{text[:400]}</mesaj>"}],
+                # Gemini API çağrısı
+                prompt = f"{AI_SYSTEM}\n\n<mesaj>{text[:400]}</mesaj>"
+                response = await asyncio.to_thread(
+                    self.bot.ai.models.generate_content,
+                    model=config.AI_MODEL,
+                    contents=prompt,
                 )
-                return resp.content[0].text.strip().upper().startswith("EVET")
+                return response.text.strip().upper().startswith("EVET")
             except Exception:
                 log.exception("AI küfür kontrolü başarısız (mesaj geçirildi)")
                 return False
@@ -126,9 +128,6 @@ class AutoMod(commands.Cog):
         on = lambda k: cfg.get(k, "1") == "1"  # noqa: E731
 
         if not member.guild_permissions.manage_messages:
-            if on("am_invite") and INVITE_RE.search(message.content):
-                return await self.punish(message, "sunucu daveti paylaşmak yasak!", warn=False)
-
             if on("am_mention") and len({m.id for m in message.mentions}) >= 6:
                 await self.punish(message, "toplu etiket yasak!", warn=False)
                 try:
@@ -138,7 +137,7 @@ class AutoMod(commands.Cog):
                 return
 
             if on("am_spam") and self.is_spam(member):
-                self.history[(member.guild.id, member.id)].clear()
+                self.history[(message.guild.id, member.id)].clear()
                 await self.punish(message, "spam yapma! (5 dk susturuldun)", warn=False)
                 try:
                     await member.timeout(timedelta(minutes=5), reason="Spam")
@@ -161,12 +160,12 @@ class AutoMod(commands.Cog):
 
     # ---------- komutlar ----------
     @automod.command(name="ayarla", description="AutoMod özelliklerini aç/kapat")
-    @app_commands.describe(kufur="Küfür filtresi", ai="AI destekli küfür tespiti", davet="Davet linki engeli",
+    @app_commands.describe(kufur="Küfür filtresi", ai="AI destekli küfür tespiti",
                            spam="Spam engeli", etiket="Toplu etiket engeli")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def ayarla(self, interaction: discord.Interaction, kufur: bool | None = None, ai: bool | None = None,
-                     davet: bool | None = None, spam: bool | None = None, etiket: bool | None = None):
-        mapping = {"am_profanity": kufur, "am_ai": ai, "am_invite": davet, "am_spam": spam, "am_mention": etiket}
+                     spam: bool | None = None, etiket: bool | None = None):
+        mapping = {"am_profanity": kufur, "am_ai": ai, "am_spam": spam, "am_mention": etiket}
         for k, v in mapping.items():
             if v is not None:
                 await self.bot.db.set(interaction.guild.id, k, "1" if v else "0")
@@ -180,7 +179,6 @@ class AutoMod(commands.Cog):
         e = discord.Embed(title="🤖 AutoMod Durumu", color=config.COLOR_INFO)
         e.add_field(name="Küfür filtresi", value=flag("am_profanity"))
         e.add_field(name="AI tespiti", value=flag("am_ai") + ("" if self.bot.ai else " (API key yok!)"))
-        e.add_field(name="Davet engeli", value=flag("am_invite"))
         e.add_field(name="Spam engeli", value=flag("am_spam"))
         e.add_field(name="Toplu etiket", value=flag("am_mention"))
         if interaction.response.is_done():

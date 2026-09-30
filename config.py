@@ -5,15 +5,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-AI_MODEL = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+AI_MODEL = os.getenv("AI_MODEL", "gemini-2.5-flash")
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 
 BRAND = os.getenv("BRAND_NAME", "BXProject")
-WEBSITE_URL = os.getenv("WEBSITE_URL", "https://merciaproject.com")
+WEBSITE_URL = os.getenv("WEBSITE_URL", "https://bxproject.com")
 YOUTUBE_URL = os.getenv("YOUTUBE_URL", "https://youtube.com/@bxproject-1")
 YOUTUBE_HANDLE = os.getenv("YOUTUBE_HANDLE", "@bxproject-1")
-YOUTUBE_NAME_HINT = os.getenv("YOUTUBE_NAME_HINT", "BX Project")
+YOUTUBE_NAME_HINT = os.getenv("YOUTUBE_NAME_HINT", "BXProject")
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "")

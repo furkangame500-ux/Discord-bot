@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import html
+import importlib.util
 import logging
 import random
 import re
+import shutil
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -192,7 +194,7 @@ class MusicControls(discord.ui.View):
         await interaction.response.send_message("⏭️ Atlandı.", ephemeral=True)
 
     @discord.ui.button(emoji="⏹️", style=discord.ButtonStyle.danger)
-    async def stop(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self._ok(interaction):
             return
         await interaction.response.send_message("⏹️ Durduruldu, çıkıyorum.", ephemeral=True)
@@ -302,6 +304,14 @@ class Music(commands.Cog):
         self.players: dict[int, Player] = {}
         self.spotify = Spotify()
 
+    async def cog_load(self):
+        if not shutil.which("ffmpeg"):
+            log.warning("FFmpeg bulunamadı! Müzik çalışmaz. Kur: winget install ffmpeg / sudo apt install ffmpeg")
+        if not importlib.util.find_spec("davey"):
+            log.warning("`davey` paketi yok! Discord ses kanalları artık DAVE şifrelemesi istiyor: pip install -U davey")
+        if not any(shutil.which(x) for x in ("deno", "node", "bun", "qjs")):
+            log.warning("JavaScript çalışma ortamı (Deno) bulunamadı: YouTube şarkıları eksik/hatalı çıkabilir. Kur: winget install DenoLand.Deno")
+
     async def cog_unload(self):
         for p in list(self.players.values()):
             p.task.cancel()
@@ -352,7 +362,15 @@ class Music(commands.Cog):
                 return None
             await vc.move_to(channel)
         elif not vc:
-            await channel.connect(self_deaf=True)
+            try:
+                await channel.connect(self_deaf=True, timeout=20.0)
+            except Exception as e:
+                log.exception("Ses kanalına bağlanılamadı")
+                hint = ""
+                if "davey" in str(e).lower() or "dave" in str(e).lower():
+                    hint = "\n`pip install -U \"discord.py[voice]\" davey` komutunu çalıştır."
+                await respond(interaction, f"❌ Ses kanalına bağlanamadım.{hint}", ephemeral=True)
+                return None
         if not player:
             player = Player(self, guild, interaction.channel)
             self.players[guild.id] = player

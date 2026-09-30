@@ -1,9 +1,9 @@
 import logging
 
-import anthropic
 import discord
 from discord import app_commands
 from discord.ext import commands
+from google import genai
 
 import config
 from database import Database
@@ -26,11 +26,13 @@ EXTENSIONS = [
     "cogs.araclar",
     "cogs.ekonomi",
     "cogs.yonetim",
+    "cogs.linkkoruma",
+    "cogs.menu",
     "cogs.utility",
 ]
 
 
-class MerciaBot(commands.Bot):
+class BXProjectBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.members = True
@@ -47,13 +49,15 @@ class MerciaBot(commands.Bot):
         )
         self.started_at = discord.utils.utcnow()
         self.db = Database()
+        
+        # Gemini İstemcisi (Client) Tanımlaması
         self.ai = (
-            anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
-            if config.ANTHROPIC_API_KEY
+            genai.Client(api_key=config.GEMINI_API_KEY)
+            if config.GEMINI_API_KEY
             else None
         )
         if not self.ai:
-            log.warning("ANTHROPIC_API_KEY yok: AI özellikleri (küfür filtresi, abone doğrulama, çeviri, yapay zeka) çalışmaz.")
+            log.warning("GEMINI_API_KEY yok: AI özellikleri (küfür filtresi, abone doğrulama, çeviri, yapay zeka) çalışmaz.")
 
     async def setup_hook(self):
         await self.db.connect()
@@ -84,7 +88,7 @@ class MerciaBot(commands.Bot):
         await super().close()
 
 
-bot = MerciaBot()
+bot = BXProjectBot()
 
 _handled: set[int] = set()
 
